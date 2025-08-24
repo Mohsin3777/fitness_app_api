@@ -1,0 +1,128 @@
+//// Schema: fitness_app
+
+Enum fitness_level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+Enum goal_type {
+  "Weight loss"
+  "Gain muscle"
+  "Improve fitness"
+}
+
+Table fitness_app.accounts {
+  id int [pk, increment]
+  first_name varchar
+  last_name varchar
+  phone varchar [unique, not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  age int
+  weight float
+  goal_weight float
+  fitness_level fitness_level
+  your_goal goal_type
+    category_id int [ref: > fitness_app.categories.id, not null]
+
+  created_at timestamp [default: `now()`]
+
+  Indexes {
+    (email, phone) [name: "user_contact_index"]
+  }
+}
+Table fitness_app.categories {
+  id int [pk, increment]
+  name varchar [unique, not null]
+
+  Note: 'Available categories like Yoga, Gym, Stretch, Cardio'
+}
+
+
+
+Enum difficulty_level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+Table fitness_app.exercises {
+  id int [pk, increment]
+  name varchar [not null, unique]
+  description text
+  category_id int [ref: > fitness_app.categories.id, not null]
+  duration_minutes int [note: 'Average time in minutes'] // optional
+  reps int [note: 'Optional if its a reps-based exercise']
+  equipment varchar [note: 'Optional: dumbbell, mat, etc.']
+  difficulty difficulty_level
+  video_url varchar [note: 'Optional instructional video']
+  created_at timestamp [default: `now()`]
+
+  Indexes {
+    (name, category_id) [unique]
+  }
+}
+Table fitness_app.workout_plans {
+  id int [pk, increment]
+  name varchar [not null]
+  description text
+  category_id int [ref: > fitness_app.categories.id]
+  created_by int [ref: > fitness_app.accounts.id]
+  duration_weeks int
+  difficulty difficulty_level
+  created_at timestamp [default: `now()`]
+}
+Table fitness_app.workout_plan_exercises {
+  id int [pk, increment]
+  plan_id int [ref: > fitness_app.workout_plans.id]
+  exercise_id int [ref: > fitness_app.exercises.id]
+  day_of_week varchar [note: 'e.g., Monday']
+  order_number int [note: 'Exercise order in workout']
+  sets int
+  reps int
+}
+Table fitness_app.progress_logs {
+  id int [pk, increment]
+  user_id int [ref: > fitness_app.accounts.id]
+  date date
+  weight float
+  body_fat_percentage float
+  notes text
+  created_at timestamp [default: `now()`]
+}
+Table fitness_app.meal_plans {
+  id int [pk, increment]
+  name varchar
+  description text
+  calories int
+  protein int
+  carbs int
+  fats int
+  created_by int [ref: > fitness_app.accounts.id]
+}
+Table fitness_app.user_meal_logs {
+  id int [pk, increment]
+  user_id int [ref: > fitness_app.accounts.id]
+  meal_plan_id int [ref: > fitness_app.meal_plans.id]
+  date date
+  notes text
+}
+Table fitness_app.exercise_logs {
+  id int [pk, increment]
+  user_id int [ref: > fitness_app.accounts.id]
+  exercise_id int [ref: > fitness_app.exercises.id]
+  date date
+  sets int
+  reps int
+  duration_minutes int
+  notes text
+}
+Table fitness_app.subscriptions {
+  id int [pk, increment]
+  user_id int [ref: > fitness_app.accounts.id]
+  plan_name varchar
+  start_date date
+  end_date date
+  is_active boolean [default: true]
+}
