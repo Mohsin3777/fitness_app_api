@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany
 } from 'typeorm';
 import { Category } from './Category';
 
@@ -17,6 +18,7 @@ export enum YourGoal {
   GainMuscle = 'Gain muscle',
   ImproveFitness = 'Improve fitness',
 }
+import { Workout } from './Workout';
 
 @Entity()
 export class User {
@@ -29,7 +31,7 @@ export class User {
   @Column()
   lastName!: string;
 
-  @Column({ unique: true, })
+  @Column({ unique: true, nullable: true })
   phone!: string;
 
   @Column({ unique: true,nullable: true })
@@ -41,7 +43,7 @@ export class User {
   profileImage!: string;
 
 
-  @Column()
+  @Column({ nullable: true})
   age!: number;
 
   @Column('float')
@@ -56,6 +58,14 @@ export class User {
   @Column({ type: 'enum', enum: YourGoal })
   yourGoal!: YourGoal;
 
+  
+
   @ManyToOne(() => Category, (category) => category.accounts)
   category!: Category;
+
+
+     // ✅ Define reverse relation (One user has many workouts)
+  @OneToMany(() => Workout, (workout) => workout.user,)
+  workouts: Workout[] | undefined;
+
 }
