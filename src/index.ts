@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 // Load .env variables
 dotenv.config();
+
+dotenv.config({ path: __dirname + '/../.env' });
+
 import 'reflect-metadata';
 import express from 'express';
 import { AppDataSource } from './ormconfig';
