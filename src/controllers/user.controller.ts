@@ -151,8 +151,13 @@ export const login = async (req: Request, res: Response) => {
       token,
       user: {
         id: user.id,
-        name: user.firstName,
+        firstName: user.firstName,
+                lastName: user.lastName,
+
         email: user.email,
+        phone:user.phone,
+        profileImage:user.profileImage
+        
       },
     });
   } catch (err) {
@@ -166,17 +171,139 @@ export const login = async (req: Request, res: Response) => {
 
 
 
-export const getUser = async (req: Request, res: Response) =>{
-    try {
-        const id= req.body;
-            const userRepo = AppDataSource.getRepository(User);
-      const user = await userRepo.findOneBy({ id: id });
+export const getUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.query; // ✅ take from params instead of body
+console.log(req.query)
+    const userId = Number(id);
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
 
-    return res.status(200).json({
-        message:"Success",data:user
+    const userRepo = AppDataSource.getRepository(User);
+
+    const user = await userRepo.findOne({
+      where: { id: userId },
+      relations: ["category"], // ✅ include relations if you want
     });
 
-    } catch (error) {
-        
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-}
+
+    // ✅ remove password before sending
+    const { password, ...userWithoutPassword } = user;
+
+    return res.status(200).json({
+      success: true,
+      message: "Success",
+      data: userWithoutPassword,
+    });
+  } catch (error) {
+    console.error("Get User Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
+
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.query;
+  console.log(req.query)
+    // ✅ Validate id
+    const userId = Number(id);
+
+  
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const {
+      firstName,
+      lastName,
+      phone,
+      email,
+      password,
+      profileImage,
+      age,
+      weight,
+      goalWeight,
+      fitnessLevel,
+      yourGoal,
+      categoryId,
+    } = req.body;
+
+    const userRepo = AppDataSource.getRepository(User);
+    const categoryRepo = AppDataSource.getRepository(Category);
+
+    // Find user
+    const user = await userRepo.findOne({
+      where: { id: userId },
+      relations: ["category"],
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // ✅ Update only provided fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (phone) user.phone = phone;
+    if (email) user.email = email;
+    if (profileImage) user.profileImage = profileImage;
+    if (age) user.age = age;
+    if (weight) user.weight = weight;
+    if (goalWeight) user.goalWeight = goalWeight;
+    if (fitnessLevel) user.fitnessLevel = fitnessLevel;
+    if (yourGoal) user.yourGoal = yourGoal;
+
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    if (categoryId) {
+      const category = await categoryRepo.findOneBy({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found",
+        });
+      }
+      user.category = category;
+    }
+
+    // Save updated user
+    const updatedUser = await userRepo.save(user);
+    const { password: _, ...userWithoutPassword } = updatedUser;
+
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    console.error("Update User Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
