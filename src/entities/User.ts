@@ -67,5 +67,6 @@ export class User {
      // ✅ Define reverse relation (One user has many workouts)
   @OneToMany(() => Workout, (workout) => workout.user,)
   workouts: Workout[] | undefined;
+    userExercises: any;
 
 }

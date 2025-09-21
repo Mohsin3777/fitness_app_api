@@ -32,4 +32,5 @@ export class Exercise {
     cascade: true,
   })
   levelDetails!: ExerciseLevelDetail[];
+    userExercises: any;
 }

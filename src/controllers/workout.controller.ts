@@ -148,3 +148,60 @@ export const deleteWorkout = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Server error", error: err });
   }
 };
+
+
+
+
+export const getUserProgress = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.query;
+
+    const workoutRepo = AppDataSource.getRepository(Workout);
+    const workoutExerciseRepo = AppDataSource.getRepository(WorkoutExercise);
+
+    // Fetch workouts with exercises
+    const workouts = await workoutRepo.find({
+      where: { user: { id: Number(userId) } },
+      relations: ["exercises", "exercises.exercise"],
+      order: { date: "ASC" },
+    });
+
+    if (!workouts.length) {
+      return res.status(404).json({ message: "No workouts found for user" });
+    }
+
+    // Stats
+    let totalWorkouts = workouts.length;
+    let totalWeightLifted = 0;
+    let bestPR = 0;
+    let totalDuration = 0;
+
+    workouts.forEach((workout) => {
+      workout.exercises.forEach((ex) => {
+        if (ex.weight && ex.sets && ex.reps) {
+          const volume = ex.weight * ex.sets * ex.reps;
+          totalWeightLifted += volume;
+          if (ex.weight > bestPR) bestPR = ex.weight;
+        }
+        if (ex.duration) {
+          totalDuration += ex.duration;
+        }
+      });
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User progress fetched successfully",
+      data: {
+        totalWorkouts,
+        totalWeightLifted,
+        bestPR,
+        totalDuration,
+        workouts,
+      },
+    });
+  } catch (err) {
+    console.error("Get Progress Error:", err);
+    return res.status(500).json({ message: "Server error", error: err });
+  }
+};
