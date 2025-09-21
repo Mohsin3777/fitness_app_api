@@ -13,6 +13,7 @@ import userRoutes from './routes/user.routes';
 import categoryRoutes from './routes/category.routes';
 import exerciseRoutes from './routes/exercise.routes';
 import workoutRoutes from './routes/workout.routes';
+import userExersiceRoute from './routes/userExersice.routes';
 
 
 
@@ -25,6 +26,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workout', workoutRoutes);
+app.use('/api/user_exersice', userExersiceRoute);
 
 // Start server after DB connection
 AppDataSource.initialize()
