@@ -69,4 +69,9 @@ export class User {
   workouts: Workout[] | undefined;
     userExercises: any;
 
+
+      @Column({ default: false})
+  profileSetup!: boolean;
+
+
 }

@@ -4,8 +4,10 @@ import { User } from '../entities/User';
 import { Category } from '../entities/Category';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { AuthRequest } from '../middlewares/authMiddleware';
 export const createUser = async (req: Request, res: Response) => {
   try {
+    console.log("createUser")
     const {
       firstName,
       profileImage,
@@ -34,7 +36,7 @@ export const createUser = async (req: Request, res: Response) => {
     // Check if user already exists
     const existingUser = await userRepo.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(409).json({ // 409 Conflict is more appropriate
+      return res.status(400).json({ // 409 Conflict is more appropriate
         success: false,
         message: 'User already exists.',
       });
@@ -156,7 +158,8 @@ export const login = async (req: Request, res: Response) => {
 
         email: user.email,
         phone:user.phone,
-        profileImage:user.profileImage
+        profileImage:user.profileImage,
+        profileSetup:user.profileSetup
         
       },
     });
@@ -171,7 +174,7 @@ export const login = async (req: Request, res: Response) => {
 
 
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.query; // ✅ take from params instead of body
 console.log(req.query)
@@ -219,8 +222,8 @@ console.log(req.query)
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.query;
-  console.log(req.query)
+const id = (req as AuthRequest).user!.id;
+  console.log(req.body)
     // ✅ Validate id
     const userId = Number(id);
 
@@ -275,9 +278,11 @@ export const updateUser = async (req: Request, res: Response) => {
     if (fitnessLevel) user.fitnessLevel = fitnessLevel;
     if (yourGoal) user.yourGoal = yourGoal;
 
-    if (password) {
-      user.password = await bcrypt.hash(password, 10);
-    }
+    user.profileSetup=true
+
+    // if (password) {
+    //   user.password = await bcrypt.hash(password, 10);
+    // }
 
     if (categoryId) {
       const category = await categoryRepo.findOneBy({ id: categoryId });
@@ -307,3 +312,8 @@ export const updateUser = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+
+
+//perform exersice

@@ -9,6 +9,8 @@ export class Category {
 
   @Column({ unique: true })
   name!: string;
+    @Column({ nullable: true })
+  image!: string;
 
   @OneToMany(() => User, (account) => account.category)
   accounts!: User[];
