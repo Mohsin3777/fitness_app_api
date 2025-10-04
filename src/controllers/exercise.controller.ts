@@ -5,6 +5,7 @@ import { Exercise } from '../entities/Exercise';
 import { Category } from '../entities/Category';
 import { ExerciseLevelDetail } from '../entities/ExerciseLevelDetail';
 import { DifficultyLevel } from '../utils/enum';
+import { ResponseClass } from '../utils/response';
 
 const exerciseRepo = AppDataSource.getRepository(Exercise);
 const categoryRepo = AppDataSource.getRepository(Category);
@@ -67,18 +68,61 @@ export const createExercise = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Server error', error: err });
   }
 };
+
 export const getAllExercises = async (req: Request, res: Response) => {
   try {
+    console.log(req.query)
     const categoryId = req.query.category as string | undefined;
+        const level = req.query.level as string | undefined; // 👈 difficulty level filter
 
-    const exercises = await exerciseRepo.find({
-      where: categoryId ? { category: { id: Number(categoryId) } } : {},
-      relations: ['category'],
-    });
+    const rawLimit = parseInt((req.query.limit as string) || "10", 10);
+    const rawPage = parseInt((req.query.page as string) || "1", 10);
 
-    return res.status(200).json({ data: exercises });
+    const limit = Math.min(Math.max(1, Number.isNaN(rawLimit) ? 10 : rawLimit), 100); // cap 100
+    const page = Math.max(1, Number.isNaN(rawPage) ? 1 : rawPage);
+    const skip = (page - 1) * limit;
+
+    const qb = exerciseRepo
+      .createQueryBuilder("exercise")
+      .leftJoinAndSelect("exercise.category", "category")
+            .leftJoinAndSelect("exercise.levelDetails", "levelDetails"); // join with level details
+
+
+    if (categoryId) {
+      qb.andWhere("category.id = :categoryId", { categoryId: Number(categoryId) });
+    }
+    if (level) {
+      qb.andWhere("levelDetails.level = :level", { level }); // 👈 filter by difficulty level
+    }
+
+    // Option A - getManyAndCount (simple and fine for many cases)
+    // const [exercises, total] = await qb
+    //   .orderBy("exercise.id", "DESC")
+    //   .take(limit)
+    //   .skip(skip)
+    //   .getManyAndCount();
+
+    // Option B - safer when joins might cause duplicate rows (use distinct count)
+    const total = await qb.clone().select("exercise.id").distinct(true).getCount();
+    const exercises = await qb
+      .orderBy("exercise.id", "DESC")
+      .take(limit)
+      .skip(skip)
+      .getMany();
+
+    return res.json(
+      ResponseClass.paginated(
+        exercises,
+        total,
+        page,
+        limit,
+        "Exercises fetched successfully",
+        200
+      )
+    );
   } catch (err) {
-    return res.status(500).json({ message: 'Server error', error: err });
+    console.error("getAllExercises error:", err);
+    return res.status(500).json(ResponseClass.error("Server error", 500));
   }
 };
 

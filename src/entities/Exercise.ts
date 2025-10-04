@@ -19,6 +19,9 @@ export class Exercise {
   @Column('text')
   description!: string;
 
+  @Column('text')
+  image!: string;
+
   @ManyToOne(() => Category, (category) => category.exercises)
   category!: Category;
 
