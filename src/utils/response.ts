@@ -1,4 +1,6 @@
 // utils/response.ts
+
+// Pagination interface
 export interface Pagination {
   total: number;
   page: number;
@@ -6,77 +8,104 @@ export interface Pagination {
   totalPages: number;
 }
 
+// Generic API response interface
 export interface ApiResponse<T = any> {
   success: boolean;
   statusCode: number;
   message: string;
   data: {
     pagination?: Pagination | null;
-    result?: T | null;
+    [key: string]: any; // 👈 allows dynamic keys like "exercise", "user", etc.
   };
+}
+
+// Options for success responses
+export interface SuccessOptions<T> {
+  result: T;
+  message?: string;
+  statusCode?: number;
+  pagination?: Pagination | null;
+  name?: string | null;
+}
+
+// Options for error responses
+export interface ErrorOptions {
+  message?: string;
+  statusCode?: number;
+  name?: string | null;
+}
+
+// Options for paginated responses
+export interface PaginatedOptions<T> {
+  result: T;
+  total: number;
+  page?: number;
+  limit?: number;
+  message?: string;
+  statusCode?: number;
   name?: string | null;
 }
 
 export class ResponseClass {
-  static success<T>(
-    result: T,
+  static success<T>({
+    result,
     message = "Success",
     statusCode = 200,
-    pagination: Pagination | null = null,
-    name: string | null = null
-  ): ApiResponse<T> {
+    pagination = null,
+    name = null,
+  }: SuccessOptions<T>): ApiResponse<T> {
     return {
       success: true,
       statusCode,
       message,
       data: {
         pagination,
-        result,
+        ...(name ? { [name]: result } : { result }),
       },
-      name,
     };
   }
 
-  static error(
+  static error({
     message = "Something went wrong",
     statusCode = 500,
-    name: string | null = null
-  ): ApiResponse {
+    name = null,
+  }: ErrorOptions): ApiResponse {
     return {
       success: false,
       statusCode,
       message,
       data: {
         pagination: null,
-        result: null,
+        ...(name ? { [name]: null } : { result: null }),
       },
-      name,
     };
   }
 
-  // convenience helper for paginated responses
-  static paginated<T>(
-    result: T,
-    total: number,
+  static paginated<T>({
+    result,
+    total,
     page = 1,
     limit = 10,
     message = "Success",
     statusCode = 200,
-    name: string | null = null
-  ): ApiResponse<T> {
+    name = null,
+  }: PaginatedOptions<T>): ApiResponse<T> {
     const safeLimit = Math.max(1, limit);
     const safePage = Math.max(1, page);
-    return this.success(
-      result,
-      message,
+
+    return {
+      success: true,
       statusCode,
-      {
-        total,
-        page: safePage,
-        limit: safeLimit,
-        totalPages: Math.ceil(total / safeLimit),
+      message,
+      data: {
+        pagination: {
+          total,
+          page: safePage,
+          limit: safeLimit,
+          totalPages: Math.ceil(total / safeLimit),
+        },
+        ...(name ? { [name]: result } : { result }),
       },
-      name
-    );
+    };
   }
 }

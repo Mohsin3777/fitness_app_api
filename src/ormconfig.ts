@@ -6,6 +6,7 @@ import { ExerciseLevelDetail } from './entities/ExerciseLevelDetail';
 
 import { WorkoutExercise } from './entities/WorkoutExercis';
 import { Workout } from './entities/Workout';
+import { UserExercise } from './entities/UserExersice';
 
 
 export const AppDataSource = new DataSource({
@@ -17,5 +18,6 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [User, Category, Exercise,ExerciseLevelDetail,WorkoutExercise,Workout],
+  entities: [User, Category, Exercise,ExerciseLevelDetail,WorkoutExercise,Workout, UserExercise
+  ],
 });

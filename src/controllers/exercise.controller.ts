@@ -110,19 +110,41 @@ export const getAllExercises = async (req: Request, res: Response) => {
       .skip(skip)
       .getMany();
 
+    // return res.json(
+    //   ResponseClass.paginated(
+    //     exercises,
+    //     total,
+    //     page,
+    //     limit,
+    //     "Exercises fetched successfully",
+    //     200
+    //   )
+    // );
+
+
+   // return res.json(exercises)
     return res.json(
-      ResponseClass.paginated(
-        exercises,
+      ResponseClass.paginated({
+        result: exercises,
         total,
         page,
         limit,
-        "Exercises fetched successfully",
-        200
-      )
+        message: "Exercises fetched successfully",
+        statusCode: 200,
+        name: "exercises", // 👈 key inside data
+      })
     );
   } catch (err) {
-    console.error("getAllExercises error:", err);
-    return res.status(500).json(ResponseClass.error("Server error", 500));
+   console.error("getAllExercises error:", err);
+    return res
+      .status(500)
+      .json(
+        ResponseClass.error({
+          message: "getAllExercises error",
+          statusCode: 500,
+          name: "exercises",
+        })
+      );
   }
 };
 
@@ -130,21 +152,37 @@ export const getAllExercises = async (req: Request, res: Response) => {
 
 export const getExerciseById = async (req: Request, res: Response) => {
   try {
-    const  id  = req.query.exerciseId;
-    const exercise = await exerciseRepo.findOne({
-      where: { id: Number(id) },
-      relations: ['category','levelDetails'],
-    });
+    const id = req.query.exerciseId;
+    const level = req.query.level as string | undefined; // optional filter
 
-    if (!exercise) {
-      return res.status(404).json({ message: 'Exercise not found' });
+    const query = exerciseRepo
+      .createQueryBuilder("exercise")
+      .leftJoinAndSelect("exercise.category", "category")
+      .leftJoinAndSelect("exercise.levelDetails", "levelDetails")
+      .where("exercise.id = :id", { id: Number(id) });
+
+    // 👇 apply filter if level is provided
+    if (level) {
+      query.andWhere("levelDetails.level = :level", { level });
     }
 
-    return res.status(200).json({ data: exercise });
+    const exercise = await query.getOne(); // 👈 await here
+
+    if (!exercise) {
+      return res.status(404).json({ message: "Exercise not found" });
+    }
+    return ResponseClass.success({
+  result: exercise,
+  message: "Success",
+  statusCode: 200,
+  name: "exercise"
+});
   } catch (err) {
-    return res.status(500).json({ message: 'Server error', error: err });
+    console.error(err);
+    return res.status(500).json({ message: "Server error", error: err });
   }
 };
+
 
 
 
