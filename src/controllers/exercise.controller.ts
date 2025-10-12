@@ -155,6 +155,8 @@ export const getExerciseById = async (req: Request, res: Response) => {
     const id = req.query.exerciseId;
     const level = req.query.level as string | undefined; // optional filter
 
+
+    console.log(id)
     const query = exerciseRepo
       .createQueryBuilder("exercise")
       .leftJoinAndSelect("exercise.category", "category")
@@ -168,18 +170,33 @@ export const getExerciseById = async (req: Request, res: Response) => {
 
     const exercise = await query.getOne(); // 👈 await here
 
+    console.log(exercise)
+
     if (!exercise) {
+          return res
+      .status(500)
+      .json(ResponseClass.error({
+        message:"Exercise not found",
+        statusCode:500,
+        name:'getExerciseById'
+      }));
       return res.status(404).json({ message: "Exercise not found" });
     }
-    return ResponseClass.success({
+    return res.json(ResponseClass.success({
   result: exercise,
   message: "Success",
   statusCode: 200,
-  name: "exercise"
-});
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error", error: err });
+  name: "getExerciseById"
+}));
+  } catch (error:any) {
+    return res
+      .status(500)
+      .json(ResponseClass.error({
+        message:error.message || "Internal Server Error",
+        statusCode:error.statusCode,
+        name:'getExerciseById'
+      }));
+
   }
 };
 

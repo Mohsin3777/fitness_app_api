@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { User } from './User';
 import { Exercise } from './Exercise';
+import { ExerciseLevelDetail } from './ExerciseLevelDetail';
 
 @Entity()
 export class UserExercise {
@@ -37,4 +38,10 @@ export class UserExercise {
   // ✅ Date of exercise
   @CreateDateColumn()
   performedAt!: Date;
+
+  @ManyToOne(() => ExerciseLevelDetail, { nullable: true })
+levelDetail?: ExerciseLevelDetail;
+
+  @Column('float')
+  caloriesBurned!: number; // e.g., kg or lbs
 }
