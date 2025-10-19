@@ -159,9 +159,17 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         phone:user.phone,
         profileImage:user.profileImage,
+        weight:user.weight,
+                age:user.age,
+                goalWeight:user.goalWeight,
+                fitnessLevel:user.fitnessLevel,
+               yourGoal:user.yourGoal, 
+
+
         profileSetup:user.profileSetup
         
       },
+    //  user:user
     });
   } catch (err) {
     console.error('Login Error:', err);
@@ -243,6 +251,7 @@ const id = (req as AuthRequest).user!.id;
       password,
       profileImage,
       age,
+      height,
       weight,
       goalWeight,
       fitnessLevel,
@@ -273,6 +282,8 @@ const id = (req as AuthRequest).user!.id;
     if (email) user.email = email;
     if (profileImage) user.profileImage = profileImage;
     if (age) user.age = age;
+        if (height) user.height = height;
+
     if (weight) user.weight = weight;
     if (goalWeight) user.goalWeight = goalWeight;
     if (fitnessLevel) user.fitnessLevel = fitnessLevel;
