@@ -28,6 +28,9 @@ export class ExerciseLevelDetail {
   @Column({ nullable: true })
   reps!: number;
 
-  @Column({ nullable: true }) // in minutes or seconds
+  @Column({ nullable: true,default:1 }) // in minutes or seconds
   durationMinutes!: number;
+
+    @Column('float')
+  calories!: number; 
 }

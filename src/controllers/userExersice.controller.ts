@@ -13,7 +13,7 @@ const exersiceRepo = AppDataSource.getRepository(Exercise);
 export const logExersice =async  (req: Request, res: Response )=> {
 
 try {
-        const {  exerciseId ,level,duration } = req.body;
+        const {  exersiceId ,level,duration } = req.body;
 
 const userId=(req as AuthRequest).user!.id;
 
@@ -24,7 +24,7 @@ const userId=(req as AuthRequest).user!.id;
       .createQueryBuilder("exercise")
     .leftJoinAndSelect("exercise.category", "category")
       .leftJoinAndSelect("exercise.levelDetails", "levelDetails")
-      .where("exercise.id = :id", { id: Number(exerciseId) });
+      .where("exercise.id = :id", { id: Number(exersiceId) });
 
     // 👇 apply filter if level is provided
     if (level) {

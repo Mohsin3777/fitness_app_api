@@ -7,10 +7,10 @@ const categoryRepo = AppDataSource.getRepository(Category);
 
 export const createCategory = async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
+    const { name,image } = req.body;
     if (!name) return res.status(400).json({ message: 'Name is required' });
 
-    const category = categoryRepo.create({ name });
+    const category = categoryRepo.create({ name,image });
     await categoryRepo.save(category);
     return res.status(201).json({ message: 'Category created', data: category });
   } catch (err) {

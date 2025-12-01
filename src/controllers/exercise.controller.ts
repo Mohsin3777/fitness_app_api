@@ -14,7 +14,7 @@ const levelDetailRepo = AppDataSource.getRepository(ExerciseLevelDetail);
 
 export const createExercise = async (req: Request, res: Response) => {
   try {
-    const { name, description, categoryId, levelDetails, equipment, videoUrl } = req.body;
+    const { name, description, categoryId, levelDetails, equipment, videoUrl,image} = req.body;
 
     if (!name || !categoryId) {
       return res.status(400).json({ message: 'Name and Category ID are required' });
@@ -31,6 +31,7 @@ export const createExercise = async (req: Request, res: Response) => {
       category,
       equipment,
       videoUrl,
+      image
     });
 
     const savedExercise = await exerciseRepo.save(exercise);
